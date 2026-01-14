@@ -16,18 +16,17 @@ services:
 
   api:
     build:
-      context: ..              # On remonte à la racine du projet pour voir "app/"
+      context: ..
       dockerfile: docker/Dockerfile
     container_name: realworld-api
     ports:
-      - '3000:3000'            # Accès via http://localhost:3000
+      - '3000:3000'
     environment:
-      # IMPORTANT : On remplace 'localhost' par 'db' (le nom du service ci-dessus)
       - DATABASE_URL=postgresql://myuser:mypassword@db:5432/realworld-db?schema=public
       - PORT=3000
       - NODE_ENV=production
     depends_on:
-      - db                     # L'API attend que la DB soit lancée
+      - db                    
 
 volumes:
   db_data:
