@@ -23,6 +23,19 @@ jobs:
           node-version: '18'
           cache: 'npm'
           cache-dependency-path: app/package-lock.json
+        
+      - name: Compilation de l'application (Build)
+        run: ./scripts/build.sh
+
+      # 👇 AJOUTEZ CES LIGNES DE DEBUG ICI 👇
+      - name: 🕵️ DEBUG - Où est le dossier dist ?
+        run: |
+          echo "📂 Racine du projet :"
+          ls -la
+          echo "📂 Contenu de app/ :"
+          ls -la app/
+          echo "📂 Contenu de app/dist (si existant) :"
+          ls -R app/dist || echo "❌ Dossier app/dist introuvable !"
 
       # On lance une base de données temporaire pour que les tests d'intégration (si besoin) fonctionnent
       - name: Démarrer PostgreSQL (Service Container)
