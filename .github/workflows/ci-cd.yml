@@ -27,16 +27,6 @@ jobs:
       - name: Compilation de l'application (Build)
         run: ./scripts/build.sh
 
-      # 👇 AJOUTEZ CES LIGNES DE DEBUG ICI 👇
-      - name: 🕵️ DEBUG - Où est le dossier dist ?
-        run: |
-          echo "📂 Racine du projet :"
-          ls -la
-          echo "📂 Contenu de app/ :"
-          ls -la app/
-          echo "📂 Contenu de app/dist (si existant) :"
-          ls -R app/dist || echo "❌ Dossier app/dist introuvable !"
-
       # On lance une base de données temporaire pour que les tests d'intégration (si besoin) fonctionnent
       - name: Démarrer PostgreSQL (Service Container)
         run: docker compose -f docker/docker-compose.yml up -d
@@ -96,16 +86,15 @@ jobs:
 
   # --- JOB 3 : DÉPLOIEMENT (Simulé) ---
   deploy:
-    name: 🚀 Deploy
-    needs: build-and-push # Attend que l'image soit prête
+    name: 🚀 Deploy to Azure
+    needs: build-and-push
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
 
     steps:
-      - name: Récupération du code
-        uses: actions/checkout@v4
-
-      - name: Exécution du script de déploiement
-        run: ./scripts/deploy.sh
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      - name: Déploiement sur Azure Web App (Container)
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: api-ci-cd
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          images: '${{ secrets.DOCKER_USERNAME }}/student-ci-cd-project:${{ github.sha }}'
