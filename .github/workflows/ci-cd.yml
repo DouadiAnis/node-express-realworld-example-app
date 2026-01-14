@@ -1,0 +1,98 @@
+name: CI/CD Pipeline
+
+# 1. DÉCLENCHEURS (Triggers)
+# Le pipeline se lance quand on pousse sur 'master' ou quand on fait une Pull Request vers 'master'.
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  # --- JOB 1 : TESTS & QUALITÉ ---
+  test-and-lint:
+    name: Test & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v4
+
+      - name: Installation de Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: app/package-lock.json
+
+      # On lance une base de données temporaire pour que les tests d'intégration (si besoin) fonctionnent
+      - name: Démarrer PostgreSQL (Service Container)
+        run: docker compose -f docker/docker-compose.yml up -d
+
+      - name: Lancer les Tests
+        run: ./scripts/test.sh
+        env:
+          # On force l'URL de la base de données vers celle du conteneur créé juste au-dessus
+          DATABASE_URL: "postgresql://myuser:mypassword@localhost:5432/realworld-db?schema=public"
+
+      # Vérification de la qualité du code (ESLint)
+      - name: Vérification Qualité (Lint)
+        working-directory: ./app
+        run: npx nx lint
+
+  # --- JOB 2 : BUILD DOCKER ---
+  build-and-push:
+    name: Build & Push Docker
+    needs: test-and-lint # Ce job ne démarre QUE si les tests ont réussi
+    runs-on: ubuntu-latest
+    # On ne pousse l'image que si c'est la branche 'master' (pas sur les PR pour éviter de polluer le registre)
+    if: github.ref == 'refs/heads/master' 
+    
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v4
+
+      - name: Installation de Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: app/package-lock.json
+
+      # Compilation TS -> JS (nécessaire avant de copier dans l'image Docker)
+      - name: Compilation de l'application (Build)
+        run: ./scripts/build.sh
+
+      # Connexion à Docker Hub pour pouvoir pousser l'image
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Construction et envoi de l'image
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          # On tague l'image avec 'latest' ET le SHA unique du commit (traçabilité)
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/student-ci-cd-project:latest
+            ${{ secrets.DOCKER_USERNAME }}/student-ci-cd-project:${{ github.sha }}
+
+  # --- JOB 3 : DÉPLOIEMENT (Simulé) ---
+  deploy:
+    name: 🚀 Deploy
+    needs: build-and-push # Attend que l'image soit prête
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v4
+
+      - name: Exécution du script de déploiement
+        run: ./scripts/deploy.sh
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
