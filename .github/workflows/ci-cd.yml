@@ -35,7 +35,7 @@ jobs:
         run: ./scripts/test.sh
         env:
           # On force l'URL de la base de données vers celle du conteneur créé juste au-dessus
-          DATABASE_URL: "postgresql://${{ USER_DB }}:${{ USER_PASSWORD }}@localhost:5432/realworld-db?schema=public"
+          DATABASE_URL: "postgresql://${{ secrets.USER_DB }}:${{ secrets.USER_PASSWORD }}@localhost:5432/realworld-db?schema=public"
           IMAGE_TAG: ${{ github.sha }}
       # Vérification de la qualité du code (ESLint)
       - name: Vérification Qualité (Lint)
