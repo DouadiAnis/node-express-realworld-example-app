@@ -13,7 +13,7 @@ services:
       - db_data:/var/lib/postgresql/data
 
   api:
-    image: ${DOCKER_IMAGE}
+    image: adouadi/student-ci-cd-project:latest
     container_name: realworld-api
     restart: always
     ports:
