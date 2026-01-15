@@ -83,6 +83,16 @@ jobs:
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/student-ci-cd-project:latest
             ${{ secrets.DOCKER_USERNAME }}/student-ci-cd-project:${{ github.sha }}
+      - name: 🛡️ Scan de vulnérabilités (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ secrets.DOCKER_USERNAME }}/student-ci-cd-project:${{ github.sha }}'
+          format: 'table'
+          # Si exit-code vaut 1, le pipeline s'arrête ici en cas de faille trouvée
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
 
   # --- JOB 3 : DÉPLOIEMENT
   deploy:
