@@ -1,6 +1,6 @@
-FROM node:18-bullseye
+FROM docker.io/node:lts-alpine
 
-
+RUN apk add --no-cache openssl
 ENV HOST=0.0.0.0
 ENV PORT=3000
 
