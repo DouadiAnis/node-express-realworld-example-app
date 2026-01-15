@@ -84,7 +84,7 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/student-ci-cd-project:latest
             ${{ secrets.DOCKER_USERNAME }}/student-ci-cd-project:${{ github.sha }}
 
-  # --- JOB 3 : DÉPLOIEMENT (Simulé) ---
+  # --- JOB 3 : DÉPLOIEMENT
   deploy:
     name: 🚀 Deploy to VM via SSH
     needs: build-and-push
@@ -116,3 +116,5 @@ jobs:
           export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} && \
           export DOCKER_PASSWORD=${{ secrets.DOCKER_PASSWORD }} && \
           ./deploy.sh"
+        env:
+          IMAGE_TAG: ${{ github.sha }}
