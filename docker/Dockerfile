@@ -1,4 +1,5 @@
-FROM docker.io/node:lts-alpine
+FROM node:18-bullseye
+
 
 ENV HOST=0.0.0.0
 ENV PORT=3000
