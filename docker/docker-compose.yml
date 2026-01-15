@@ -9,24 +9,21 @@ services:
       - POSTGRES_USER=myuser
       - POSTGRES_PASSWORD=mypassword
       - POSTGRES_DB=realworld-db
-    ports:
-      - '5432:5432'
     volumes:
       - db_data:/var/lib/postgresql/data
 
   api:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
+    image: ${DOCKER_IMAGE}
     container_name: realworld-api
+    restart: always
     ports:
-      - '3000:3000'
+      - "3000:3000"
     environment:
       - DATABASE_URL=postgresql://myuser:mypassword@db:5432/realworld-db?schema=public
-      - PORT=3000
       - NODE_ENV=production
+      - PORT=3000
     depends_on:
-      - db                    
+      - db
 
 volumes:
   db_data:
