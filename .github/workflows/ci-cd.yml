@@ -36,7 +36,7 @@ jobs:
         env:
           # On force l'URL de la base de données vers celle du conteneur créé juste au-dessus
           DATABASE_URL: "postgresql://myuser:mypassword@localhost:5432/realworld-db?schema=public"
-
+          IMAGE_TAG: ${{ github.sha }}
       # Vérification de la qualité du code (ESLint)
       - name: Vérification Qualité (Lint)
         working-directory: ./app
