@@ -106,7 +106,7 @@ jobs:
       # 2. On envoie les fichiers VERS la VM
       - name: Copie des fichiers sur le serveur (SCP)
         run: |
-          scp docker/docker-compose.prod.yml ${{ secrets.VM_USERNAME }}@${{ secrets.VM_HOST }}:~/docker-compose.prod.yml
+          scp docker/docker-compose.yml ${{ secrets.VM_USERNAME }}@${{ secrets.VM_HOST }}:~/docker-compose.yml
           scp scripts/deploy.sh ${{ secrets.VM_USERNAME }}@${{ secrets.VM_HOST }}:~/deploy.sh
 
       # 3. On lance le script SUR la VM
