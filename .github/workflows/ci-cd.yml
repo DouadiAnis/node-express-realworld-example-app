@@ -86,15 +86,33 @@ jobs:
 
   # --- JOB 3 : DÉPLOIEMENT (Simulé) ---
   deploy:
-    name: 🚀 Deploy to Azure
+    name: 🚀 Deploy to VM via SSH
     needs: build-and-push
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
 
     steps:
-      - name: Déploiement sur Azure Web App (Container)
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: api-ci-cd
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          images: '${{ secrets.DOCKER_USERNAME }}/student-ci-cd-project:${{ github.sha }}'
+      - name: Récupération du code
+        uses: actions/checkout@v4
+
+      # 1. On prépare la connexion SSH
+      - name: Configuration de la clé SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts
+
+      # 2. On envoie les fichiers VERS la VM
+      - name: Copie des fichiers sur le serveur (SCP)
+        run: |
+          scp docker/docker-compose.prod.yml ${{ secrets.VM_USERNAME }}@${{ secrets.VM_HOST }}:~/docker-compose.prod.yml
+          scp scripts/deploy.sh ${{ secrets.VM_USERNAME }}@${{ secrets.VM_HOST }}:~/deploy.sh
+
+      # 3. On lance le script SUR la VM
+      - name: Exécution du script sur le serveur (SSH)
+        run: |
+          ssh ${{ secrets.VM_USERNAME }}@${{ secrets.VM_HOST }} "chmod +x deploy.sh && \
+          export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} && \
+          export DOCKER_PASSWORD=${{ secrets.DOCKER_PASSWORD }} && \
+          ./deploy.sh"
