@@ -116,5 +116,3 @@ jobs:
           export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} && \
           export DOCKER_PASSWORD=${{ secrets.DOCKER_PASSWORD }} && \
           ./deploy.sh"
-        env:
-          IMAGE_TAG: ${{ github.sha }}

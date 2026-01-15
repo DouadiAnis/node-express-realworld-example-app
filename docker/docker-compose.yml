@@ -15,7 +15,7 @@ services:
       - db_data:/var/lib/postgresql/data
 
   api:
-    image: adouadi/student-ci-cd-project:${IMAGE_TAG}
+    image: adouadi/student-ci-cd-project:latest
     container_name: realworld-api
     restart: always
     ports:
